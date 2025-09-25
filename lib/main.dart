@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:unst/res/unst_colors.dart';
+import 'package:unst/widgets/unst_text_input.dart';
 
+import 'dart:math' as math;
+import 'package:flutter/rendering.dart';
+
+// The main application widget.
 void main() {
   runApp(const MyApp());
 }
@@ -7,93 +13,158 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+    return const MaterialApp(
+      home: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: DynamicSizedLayoutExample(),
             ),
-          ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+}
+
+// A stateful widget to manage the text editing controller and focus.
+class DynamicSizedLayoutExample extends StatefulWidget {
+  const DynamicSizedLayoutExample({super.key});
+
+  @override
+  State<DynamicSizedLayoutExample> createState() =>
+      _DynamicSizedLayoutExampleState();
+}
+
+class _DynamicSizedLayoutExampleState extends State<DynamicSizedLayoutExample> {
+  final textEditingController = TextEditingController();
+  final focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    textEditingController.dispose();
+    focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(12.0),
+      decoration: BoxDecoration(border: Border.all()),
+      child: DynamicSizedLayout(
+        children: <Widget>[
+          TextFieldTapRegion(
+            onTapOutside: (_) => focusNode.unfocus(),
+            child: EditableText(
+              controller: textEditingController,
+              focusNode: focusNode,
+              autofocus: false,
+              maxLines: null,
+              style: TextStyle(color: Colors.black, height: 1.4),
+              cursorColor: Colors.black,
+              backgroundCursorColor: Colors.black,
+            ),
+          ),
+          // The icon button is the second child.
+          Container(
+            color: Colors.black,
+            child: IconButton(
+              onPressed: () {
+                print("on buttton press");
+              },
+              icon: const Icon(Icons.send_rounded, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DynamicSizedLayout extends MultiChildRenderObjectWidget {
+  const DynamicSizedLayout({super.key, required super.children});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) {
+    return _RenderDynamicSizedLayout();
+  }
+}
+
+class _RenderDynamicSizedLayout extends RenderBox
+    with ContainerRenderObjectMixin<RenderBox, MultiChildLayoutParentData> {
+  _RenderDynamicSizedLayout();
+
+  late RenderBox _textField;
+  late RenderBox _sendButton;
+
+  @override
+  void setupParentData(RenderBox child) {
+    if (child.parentData is! MultiChildLayoutParentData) {
+      child.parentData = MultiChildLayoutParentData();
+    }
+  }
+
+  @override
+  void performLayout() {
+    _textField = firstChild!;
+    _sendButton = lastChild!;
+
+    // Layout the send button first so we know its width.
+    _sendButton.layout(constraints, parentUsesSize: true);
+
+    // Text field gets the remaining width.
+    final textConstraints = constraints.deflate(
+      EdgeInsets.only(right: _sendButton.size.width),
+    );
+    _textField.layout(textConstraints, parentUsesSize: true);
+
+    final height = math.max(_textField.size.height, _sendButton.size.height);
+
+    size = Size(constraints.maxWidth, height);
+
+    // Position children
+    final textParentData = _textField.parentData as MultiChildLayoutParentData;
+    textParentData.offset = Offset(0, (height - _textField.size.height) / 2);
+
+    final buttonParentData =
+        _sendButton.parentData as MultiChildLayoutParentData;
+    buttonParentData.offset = Offset(
+      constraints.maxWidth - _sendButton.size.width,
+      (height - _sendButton.size.height),
+    );
+
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    var textParentData = _textField.parentData as MultiChildLayoutParentData;
+    var buttonParentData = _sendButton.parentData as MultiChildLayoutParentData;
+
+    context.paintChild(_textField, offset + textParentData.offset);
+    context.paintChild(_sendButton, offset + buttonParentData.offset);
+  }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    final children = [firstChild, lastChild];
+    for (final child in children.reversed) {
+      final parentData = child?.parentData as MultiChildLayoutParentData;
+      final childOffset = parentData.offset;
+
+      final isHit = result.addWithPaintOffset(
+        offset: childOffset,
+        position: position,
+        hitTest: (result, transformed) {
+          return child?.hitTest(result, position: transformed) ?? false;
+        },
+      );
+
+      if (isHit) return true;
+    }
+    return false;
   }
 }
