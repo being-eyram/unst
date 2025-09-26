@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:svg_flutter/svg.dart';
+import 'package:unst/res/unst_assets.dart';
 import 'package:unst/res/unst_colors.dart';
+import 'package:unst/widgets/app_logo.dart';
 import 'package:unst/widgets/unst_text_input.dart';
 
 import 'dart:math' as math;
@@ -10,19 +14,67 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  int selectedIndex = 0;
+
+  @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      theme: ThemeData(useMaterial3: true),
       home: Scaffold(
+        backgroundColor: UnstColors.appBackground,
         body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.all(20),
-              child: DynamicSizedLayoutExample(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 48),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+
+                AppLogo(),
+
+                SizedBox(height: 40,),
+
+                Flexible(child: DynamicSizedLayoutExample()),
+              ],
             ),
+          ),
+        ),
+
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            border: Border.symmetric(horizontal: BorderSide()),
+          ),
+          child: NavigationBar(
+            animationDuration: Duration(milliseconds: 150),
+            backgroundColor: UnstColors.bottomNavBackground,
+            selectedIndex: selectedIndex,
+            onDestinationSelected: (index) {
+              setState(() => selectedIndex = index);
+            },
+            height: 96,
+            indicatorColor: Colors.white,
+            indicatorShape: Border.all(),
+
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+            destinations: [
+              NavigationDestination(
+                selectedIcon: SvgPicture.asset(UnstAssets.icHomeBold),
+                icon: SvgPicture.asset(UnstAssets.icHome),
+                label: "",
+              ),
+              NavigationDestination(
+                icon: SvgPicture.asset(UnstAssets.icWardrobe),
+                selectedIcon: SvgPicture.asset(UnstAssets.icWardrobeBold),
+                label: "",
+              ),
+            ],
           ),
         ),
       ),
@@ -54,29 +106,53 @@ class _DynamicSizedLayoutExampleState extends State<DynamicSizedLayoutExample> {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(12.0),
-      decoration: BoxDecoration(border: Border.all()),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(width: 2),
+        boxShadow: [BoxShadow(color: Colors.black, offset: Offset(5, 5))],
+      ),
       child: DynamicSizedLayout(
         children: <Widget>[
-          TextFieldTapRegion(
+          TextField(
             onTapOutside: (_) => focusNode.unfocus(),
-            child: EditableText(
-              controller: textEditingController,
-              focusNode: focusNode,
-              autofocus: false,
-              maxLines: null,
-              style: TextStyle(color: Colors.black, height: 1.4),
-              cursorColor: Colors.black,
-              backgroundCursorColor: Colors.black,
+            controller: textEditingController,
+            focusNode: focusNode,
+            cursorWidth: 8,
+            cursorHeight: 24,
+            autofocus: false,
+            maxLines: null,
+
+            decoration: InputDecoration(
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
             ),
+            style: GoogleFonts.ibmPlexMono(
+              textStyle: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+            ),
+
+            cursorColor: Colors.black,
+            keyboardAppearance: Brightness.dark,
           ),
           // The icon button is the second child.
           Container(
             color: Colors.black,
             child: IconButton(
               onPressed: () {
-                print("on buttton press");
+                showModalBottomSheet(
+                  context: context,
+                  shape: Border.all(),
+                  useSafeArea: true,
+                  builder: (context) {
+                    return Container(height: 400);
+                  },
+                );
               },
-              icon: const Icon(Icons.send_rounded, color: Colors.white),
+              icon: SvgPicture.asset(
+                UnstAssets.icSendBold,
+                color: Colors.white,
+              ),
             ),
           ),
         ],
@@ -113,8 +189,9 @@ class _RenderDynamicSizedLayout extends RenderBox
     _textField = firstChild!;
     _sendButton = lastChild!;
 
+    final buttonConstraints = BoxConstraints.tight(Size(56, 56));
     // Layout the send button first so we know its width.
-    _sendButton.layout(constraints, parentUsesSize: true);
+    _sendButton.layout(buttonConstraints, parentUsesSize: true);
 
     // Text field gets the remaining width.
     final textConstraints = constraints.deflate(
@@ -136,7 +213,6 @@ class _RenderDynamicSizedLayout extends RenderBox
       constraints.maxWidth - _sendButton.size.width,
       (height - _sendButton.size.height),
     );
-
   }
 
   @override
