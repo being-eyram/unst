@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:svg_flutter/svg.dart';
@@ -5,12 +6,14 @@ import 'package:unst/res/unst_assets.dart';
 import 'package:unst/res/unst_colors.dart';
 import 'package:unst/widgets/app_logo.dart';
 import 'package:unst/widgets/unst_text_input.dart';
+import 'firebase_options.dart';
 
 import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 
-// The main application widget.
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -36,10 +39,9 @@ class _MyAppState extends State<MyApp> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-
                 AppLogo(),
 
-                SizedBox(height: 40,),
+                SizedBox(height: 40),
 
                 Flexible(child: DynamicSizedLayoutExample()),
               ],
