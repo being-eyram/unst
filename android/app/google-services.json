@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "823590603561",
+    "project_id": "unst-project",
+    "storage_bucket": "unst-project.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:823590603561:android:032a3076e83cfe80300538",
+        "android_client_info": {
+          "package_name": "com.sunnierpub.unst"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6m-RryEzNpWiXZ481XF2rEwLNF49hYvY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
